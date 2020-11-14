@@ -103,7 +103,6 @@ class src_file(file):
     def __findInstances(self, ContentList):
         instDict = {}
         rgxinst = r"([\w_]*)\s*([\w_]*)\s*(\([\w_\-\(\)\[\], .:]*\))"
-
         for i in ContentList:
             match = re.search(rgxinst, i)
             if (match):
@@ -117,23 +116,25 @@ class src_file(file):
         return ModuleDetector[0]
 
     def getFileInputs(self):
-        return (self.__splitVar(self.__DetectRGX(self.source_string, rgxInput, 4)))
+        return self.__splitVar(self.__DetectRGX(self.source_string, rgxInput, 4))
 
     def getInputSizes(self):
-        return (self.__splitVar(self.__DetectRGX(self.source_string, rgxInput, 3)))
+        return self.__DetectRGX(self.source_string, rgxInput, 3)
 
     def getInputSizesInt(self):
-        SizesStr = self.getInputSizes()
-        return self.__numsize(SizesStr)
+        return self.__numsize(self.__splitVar(self.getInputSizes()))
 
     def getFileOutputs(self):
-        return (self.__splitVar(self.__DetectRGX(self.source_string, rgxOutput, 4)))
+        return self.__splitVar(self.__DetectRGX(self.source_string, rgxOutput, 4))
 
     def getOutputSizes(self):
-        return (self.__splitVar(self.__DetectRGX(self.source_string, rgxOutput, 3)))
+        return self.__DetectRGX(self.source_string, rgxOutput, 3)
 
     def getOutputSizesInt(self):
-        return self.__numsize(self.getOutputSizes())
+        return self.__numsize(self.__splitVar(self.getOutputSizes()))
+
+    def getInstantiatedMods(self):
+        return self.__findInstances(self.source_string)
 
 class SourceFileData (src_file):
     def __init__(self, name, direct = ""):
@@ -145,23 +146,10 @@ class SourceFileData (src_file):
         self.input_sizes_int = Source.getInputSizesInt()
         self.output_list = Source.getFileOutputs()
         self.output_sizes = Source.getOutputSizes()
-        self.instantiated_mods = Source.getOutputSizesInt()
+        self.instantiated_mods = Source.getInstantiatedMods()
 
 
 if __name__ == '__main__':
-    config = src_file("config.txt")
-    print("--------------Module Default-------------")
-    print(config.getFileModule())
-
-    print("--------------Input Default-------------")
-    print("Variables", config.getFileInputs())
-    print("Size", config.getInputSizes())
-    print("Size Int", config.getInputSizesInt())
-
-    print("--------------Output Default-------------")
-    print("Variable", config.getFileOutputs())
-    print("Size", config.getOutputSizes())
-    print("Size Int", config.getOutputSizesInt())
 
     Source = src_file("Test.txt")
     print("--------------Module Test.txt-------------")

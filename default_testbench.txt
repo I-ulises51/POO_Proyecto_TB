@@ -16,25 +16,19 @@ initial
 		$dumpvars (1, Top_Module_tb);
 		
 //clk and rst initial values
-  clk_tb = 0;
-  rst_tb = 0;
+		//No clock signal indicated in configuration file
+		//No reset signal indicated in configuration file
+		clk_tb = 0;
+		rst_tb = 0;
+		a_tb = 0;
+		b_tb = 0;
 
 //variable changes  
 
 		#1
-		//rst_tb = 1'b0; //Change if reset is desired
-		a_tb = 32'b10000101101011111110110010100001;
-		b_tb = 32'b11111110100100101011011001111;
-
-		#1
-		//rst_tb = 1'b0; //Change if reset is desired
-		a_tb = 32'b110010010001010110010011101110;
-		b_tb = 32'b10010110010000000100111100011100;
-
-		#1
 		$finish;
 	end
-  always forever #1 clk_tb = ~clk_tb;
+
 endmodule
 
 

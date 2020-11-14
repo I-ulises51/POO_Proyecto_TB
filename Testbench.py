@@ -5,7 +5,6 @@ from itertools import  chain
 from random import randint
 
 class TestBench (file):
-
     def __init__(self, name, direct, mod_info, config_dict):
         file.__init__(self,name,direct)
         self.mod_info = mod_info
@@ -74,14 +73,62 @@ class TestBench (file):
         tb_out.write(f".{temp_list[len(temp_list)-1]}({temp_list[len(temp_list)-1]}_tb));")
         return tb_out
 
-    def __CheckRstClk(self,tb_out, rgxempty, config, key):
-        if (config[key] == "none" or config[key] == "none\""):
-            tb_out.write("//No clock signal indicated in configuration file\n")
-        elif (not re.match(rgxempty, config[key])):
-            tb_out.write("//No valid specification of clock signal found in configuration\n")
+    def __initializeVar(self, tb_out, config, IDetecor):
+        flatInputs = list(chain.from_iterable(IDetecor))
+        if (config["md_clk_name"] != "none"):
+            tb_out.write("\t\t" + config["md_clk_name"] + "_tb=0; //Clock Init\n")
+        elif (not re.match("(\w*)", config["md_clk_name"])):
+            tb_out.write("\t\t//No valid specification of clock signal found in configuration\n")
         else:
-            tb_out.write("  " + config[key] + "_tb" + " = 0;\n")
+            tb_out.write("\t\t//No clock signal indicated in configuration file\n")
+
+        if (config["rst_ope"] == "h" and  config["md_rst_name"] != "none"):
+            tb_out.write("\t\t"+ config["md_rst_name"] + "_tb=1; //Reset\n")
+        elif (config["rst_ope"] == "l" and config["md_rst_name"] != "none"):
+            tb_out.write(("\t\t"+ config["md_rst_name"]+"_tb=0; //Reset\n"))
+        elif (not re.match("(\w*)", config["md_clk_name"])):
+            tb_out.write("\t\t//No valid specification of reset signal found in configuration : empty spaces? \n")
+        else:
+            tb_out.write("\t\t//No reset signal indicated in configuration file\n")
+
+        for i in range(len(flatInputs)):
+            if (flatInputs[i] != config["md_clk_name"] and flatInputs[i] != config["md_rst_name"]):
+                tb_out.write(f"\t\t{flatInputs[i]}_tb = 0;\n")
+        return  tb_out
+
+    def __PrintRandomCases(self, tb_out, config, IDetector, ISizes_Val):
+        if (config["tb_cases"] == "none" or config["tb_cases"] == "none\""):
+            tb_out.write("\n//Generation of random testcases was not selected in configuration file  \n")
+        elif (self.checkInt(config["tb_cases"])):
+            for j in range(0, int(config["tb_cases"])):
+                tb_out.write("\n\t\t#1\n")
+                i = 0
+                for items in IDetector:
+                    for word in items:
+                        if (word == config["md_rst_name"]):
+                            if (config["rst_ope"] == 'l'):
+                                rand = 1
+                                rand = str(bin(rand))
+                                tb_out.write("\t\t//" + word + "_tb = " + str(ISizes_Val[i])
+                                             + "'" + rand[1:] + "; //Change if reset is desired" + "\n")
+                            else:
+                                rand = 0
+                                rand = str(bin(rand))
+                                tb_out.write("\t\t//" + word + "_tb = " + str(ISizes_Val[i])
+                                             + "'" + rand[1:] + "; //Change if reset is desired" + "\n")
+                        elif (word != config["md_clk_name"]):
+                            rand = randint(0, (2 ** (ISizes_Val[i]) - 1))
+                            rand = str(bin(rand))
+                            tb_out.write(
+                                "\t\t" + word + "_tb = " + str(ISizes_Val[i]) + "'" + rand[1:] + ";" + "\n")
+                    i = i + 1
+        else:
+            tb_out.write(
+                "\n//There was a problem with the amount of cases indicated, please check configuration file  \n")
         return tb_out
+
+    def __PrintFixCases(self):
+        x= []
 
     def __ClkVar(self, tb_out, config, rgxempty):
         if (config["md_clk_name"] == "none" or config["md_clk_name"] == "none\""):
@@ -105,7 +152,6 @@ class TestBench (file):
         return  tb_out
 
     def generate(self):
-
         if (self.config_dict["tb_dir"] == ""):
             self.direct = os.getcwd()
         if (self.tb_validation()):
@@ -113,74 +159,30 @@ class TestBench (file):
             #print("Esto es tb_path", tb_path)
             tb_out = open(tb_path, "w+", 1)
             rgxepty = "(\w*)"
-            mod_name = self.mod_info.module_name
-            inputDetector = self.mod_info.input_list
-            inputSizes = self.mod_info.input_sizes_str
-            inputSizes_val = self.mod_info.input_sizes_int
-            outputDetector = self.mod_info.output_list
-            outputSizes = self.mod_info.output_sizes
-            inst_mods = self.mod_info.instantiated_mods
-            config = self.config_dict
 
             tb_out.write("//test bench code\n`timescale 1ns/1ps\n")
-            tb_out.write("module " + mod_name + "_tb\n\n//inputs and outputs\n")
+            tb_out.write("module " + self.mod_info.module_name + "_tb\n\n//inputs and outputs\n")
 
-            tb_out = self.__PrintVarNSize(tb_out,inputDetector,inputSizes)
-            tb_out = self.__PrintVarNSize(tb_out,outputDetector,outputSizes)
+            tb_out = self.__PrintVarNSize(tb_out, self.mod_info.input_list, self.mod_info.input_sizes_str)
+            tb_out = self.__PrintVarNSize(tb_out, self.mod_info.output_list, self.mod_info.output_sizes)
 
-            tb_out.write("  " + mod_name + " UUT (")
-            tb_out = self.__PrintUUTContent(tb_out, inputDetector, outputDetector)
+            tb_out.write("  " + self.mod_info.module_name + " UUT (")
+            tb_out = self.__PrintUUTContent(tb_out, self.mod_info.input_list, self.mod_info.output_list)
 
             # escritura del cuerpo del test bench
-            tb_out.write("\ninitial\n \tbegin\n\t\t$dumpfile(\"" + mod_name + "_tb.vcd\");\n")
-            tb_out.write("\t\t$dumpvars (1, " + mod_name + "_tb"");\n\t\t\n//clk and rst initial values\n")
+            tb_out.write("\ninitial\n \tbegin\n\t\t$dumpfile(\"" + self.mod_info.module_name + "_tb.vcd\");\n")
+            tb_out.write("\t\t$dumpvars (1, " + self.mod_info.module_name + "_tb"");\n\t\t\n//clk and rst initial values\n")
 
-            tb_out = self.__CheckRstClk(tb_out,rgxepty,config,"md_clk_name")
-            tb_out = self.__CheckRstClk(tb_out, rgxepty, config, "md_rst_name")
+            tb_out = self.__initializeVar(tb_out, self.config_dict, self.mod_info.input_list)
 
             tb_out.write("\n//variable changes  \n")
             # ciclo para la escitura de n pruebas aleatorias
-            if (config["tb_cases"] == "none" or config["tb_cases"] == "none\""):
-                tb_out.write("\n//Generation of random testcases was not selected in configuration file  \n")
-
-            elif (self.checkInt(config["tb_cases"])):
-
-                for j in range(0, int(config["tb_cases"])):
-                    tb_out.write("\n\t\t#1\n")
-                    i = 0
-                    for items in inputDetector:
-                        for word in items:
-                            if (word == config["md_rst_name"]):
-                                if (config["rst_ope"] == 'l'):
-                                    rand = 1
-                                    rand = str(bin(rand))
-                                    tb_out.write("\t\t//" + word + "_tb = " + str(inputSizes_val[i]) + "'" + rand[
-                                                                                                           1:] + "; //Change if reset is desired" + "\n")
-                                else:
-                                    rand = 0
-                                    rand = str(bin(rand))
-                                    tb_out.write("\t\t//" + word + "_tb = " + str(inputSizes_val[i]) + "'" + rand[
-                                                                                                           1:] + "; //Change if reset is desired" + "\n")
-                            elif (word != config["md_clk_name"]):
-                                rand = randint(0, (2 ** (inputSizes_val[i]) - 1))
-                                rand = str(bin(rand))
-                                tb_out.write(
-                                    "\t\t" + word + "_tb = " + str(inputSizes_val[i]) + "'" + rand[1:] + ";" + "\n")
-                        i = i + 1
-
-            else:
-                tb_out.write(
-                    "\n//There was a problem with the amout of cases indicated, please check configuration file  \n")
+            tb_out = self.__PrintRandomCases(tb_out,  self.config_dict, self.mod_info.input_list, self.mod_info.input_sizes_int)
 
             tb_out.write("\n\t\t#1\n\t\t$finish;\n\tend\n")
-
-            tb_out = self.__ClkVar(tb_out, config, rgxepty)
+            tb_out = self.__ClkVar(tb_out, self.config_dict, rgxepty)
             tb_out.write("endmodule\n")
-            tb_out = self.__printinstances(tb_out,inst_mods)
+            tb_out = self.__printinstances(tb_out,self.mod_info.instantiated_mods)
             tb_out.close()
         else:
             print("Unable to generate tb...")
-
-if __name__ == '__main__':
-    TB = TestBench("tst_testbench.txt")
-    TB.generate()

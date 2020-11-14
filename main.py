@@ -1,6 +1,7 @@
 from Testbench import TestBench
 from config_file import config_file
-from Src_File import src_file
+#from Src_File import srcf
+from SourceFile import SourceFileData
 
 config = config_file("config.txt").get_config()
 print(config)
@@ -10,18 +11,19 @@ for key in keys:
     words.append(key)
 print(words)
 
-source = src_file(config[words[0]], config[words[1]])
-mod = source.get_content()
+#source = src_file(config[words[0]], config[words[1]])
+#mod = source.get_content()
+Source = SourceFileData(config[words[0]], config[words[1]])
 
 print("")
 print("Input information within module structure: ")
 
-print(mod.input_list)
-print(mod.input_sizes_str)
-print(mod.input_sizes_int)
+print(Source.getFileInputs())
+print(Source.getFileOutputs())
+print(Source.getInputSizesInt())
 
 print("")
 print("Generating Testbench: ")
 
-tb = TestBench(config[words[2]], config[words[3]], mod, config)
+tb = TestBench(config[words[2]], config[words[3]], Source, config)
 tb.generate()
