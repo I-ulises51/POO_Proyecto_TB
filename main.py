@@ -1,6 +1,5 @@
 from Testbench import TestBench
 from config_file import config_file
-#from Src_File import srcf
 from SourceFile import SourceFileData
 
 config = config_file("config.txt").get_config()

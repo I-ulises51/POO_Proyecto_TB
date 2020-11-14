@@ -11,25 +11,25 @@ tb_name: default_testbench.txt
 tb_dir: C:\Users\Irving U\Desktop\POO_Proyecto
 
 /* Indicate name of the module clock signal (if none write none) */
-md_clk_name: none
+md_clk_name: clk
 
 /* Indicate name of the module reset signal (if none write none) */
-md_rst_name: none
+md_rst_name: rst
 
 /* Indicate if reset is active high (write h) or active low (write l), if no reset write none*/
-rst_ope: none
+rst_ope: l
 
 /* Generate randomized test cases? (if yes, write the number of test cases, ex: 5, otherwise write none) */
-tb_cases: 0
+tb_cases: 5
 
 /**/
-tb_gen:
+tb_gen: dec
 
 /**/
-tb_initval:
+tb_initval: 5
 
 /**/
-tb_inc:
+tb_inc: 2
 
 /**/
-tb_base:
+tb_base: dec

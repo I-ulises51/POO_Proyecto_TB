@@ -16,19 +16,42 @@ initial
 		$dumpvars (1, Top_Module_tb);
 		
 //clk and rst initial values
-		//No clock signal indicated in configuration file
-		//No reset signal indicated in configuration file
-		clk_tb = 0;
-		rst_tb = 0;
+		clk_tb=0; //Clock Init
+		rst_tb=0; //Reset
 		a_tb = 0;
 		b_tb = 0;
 
 //variable changes  
+		Decrease case generation selected
+		#1
+		//rst_tb = 1'b1; //Change if reset is desired
+		a_tb = 32'5;
+		b_tb = 32'5;
+
+		#1
+		//rst_tb = 1'b1; //Change if reset is desired
+		a_tb = 32'3;
+		b_tb = 32'3;
+
+		#1
+		//rst_tb = 1'b1; //Change if reset is desired
+		a_tb = 32'1;
+		b_tb = 32'1;
+
+		#1
+		//rst_tb = 1'b1; //Change if reset is desired
+		a_tb = 32'-1;
+		b_tb = 32'-1;
+
+		#1
+		//rst_tb = 1'b1; //Change if reset is desired
+		a_tb = 32'-3;
+		b_tb = 32'-3;
 
 		#1
 		$finish;
 	end
-
+  always forever #1 clk_tb = ~clk_tb;
 endmodule
 
 
