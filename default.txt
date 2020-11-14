@@ -1,0 +1,6 @@
+
+module DefaultModule ();
+  input default_in;
+  output reg default_out;
+
+  //Default

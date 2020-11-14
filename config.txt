@@ -1,0 +1,23 @@
+/* Indicate filename, ex:module.sv*
+source_name: test.txt
+
+/* Indicate file location directory, use full directory path */
+source_dir: C:\Users\Irving U\Desktop\POO_Proyecto
+
+/* Indicate desired name for the resulting testbench file, ex:module_tb.sv */
+tb_name: default_testbench.txt
+
+/* Indicate desired location (directory path) for the resulting testbench file, use full directory path */
+tb_dir: C:\Users\Irving U\Desktop\POO_Proyecto
+
+/* Indicate name of the module clock signal (if none write none) */
+md_clk_name: clk
+
+/* Indicate name of the module reset signal (if none write none) */
+md_rst_name: rst
+
+/* Indicate if reset is active high (write h) or active low (write l), if no reset write none*/
+rst_ope: none
+
+/* Generate randomized test cases? (if yes, write the number of test cases, ex: 5, otherwise write none) */
+tb_cases: 2

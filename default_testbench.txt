@@ -1,0 +1,49 @@
+//test bench code
+`timescale 1ns/1ps
+module Top_Module_tb
+
+//inputs and outputs
+  reg  clk_tb;
+  reg  rst_tb;
+  reg [31:0] a_tb;
+  reg [31:0] b_tb;
+  reg [31:0] out_G_tb;
+  reg [31:0] out_Y_tb;
+  Top_Module UUT (.clk(clk_tb), .rst(rst_tb), .a(a_tb), .b(b_tb), .out_G(out_G_tb), .out_Y(out_Y_tb));
+initial
+ 	begin
+		$dumpfile("Top_Module_tb.vcd");
+		$dumpvars (1, Top_Module_tb);
+		
+//clk and rst initial values
+  clk_tb = 0;
+  rst_tb = 0;
+
+//variable changes  
+
+		#1
+		//rst_tb = 1'b0; //Change if reset is desired
+		a_tb = 32'b10000101101011111110110010100001;
+		b_tb = 32'b11111110100100101011011001111;
+
+		#1
+		//rst_tb = 1'b0; //Change if reset is desired
+		a_tb = 32'b110010010001010110010011101110;
+		b_tb = 32'b10010110010000000100111100011100;
+
+		#1
+		$finish;
+	end
+  always forever #1 clk_tb = ~clk_tb;
+endmodule
+
+
+/* -- Instances found within module -- 
+format: <> module_name --> instance name 
+
+<> pc --> pc_top
+<> adder --> adder_top
+<> Instruction_memory --> instruction_memory_top
+<> Registers_bank --> Registers_bank_top
+<> ALU --> ALU_top
+  --------------- */

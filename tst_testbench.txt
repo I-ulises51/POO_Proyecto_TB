@@ -1,0 +1,43 @@
+//test bench code
+`timescale 1ns/1ps
+module Top_Module_tb
+
+//inputs and outputs
+  reg  clk_tb;
+  reg  rste_tb;
+  reg  clk_tb;
+  reg  rst_tb;
+  wire  out_G_tb;
+  wire [31:0] out_G_tb;
+  wire [31:0] out_Y_tb;
+  Top_Module UUT (.clk(clk_tb),.rste(rste_tb),.clk(clk_tb),.rst(rst_tb),.out_G(out_G_tb),.out_G(out_G_tb),.out_Y(out_Y_tb));
+
+initial
+  begin
+    $dumpfile("Top_Module_tb.vcd");
+    $dumpvars (1, Top_Module_tb);
+
+//clk and rst initial values
+  clk_tb = 0;
+  rst_tb = 0; //reset signal defaulted to active_high
+
+//variable changes  
+
+//There was a problem with the amout of cases indicated, please check configuration file  
+
+  #1
+  $finish;
+  end
+  always forever #1 clk_tb = ~clk_tb;
+endmodule
+
+
+/* -- Instances found within module -- 
+format: <> module_name --> instance name 
+
+<> pc --> pc_top
+<> adder --> adder_top
+<> Instruction_memory --> instruction_memory_top
+<> Registers_bank --> Registers_bank_top
+<> ALU --> ALU_top
+  --------------- */
