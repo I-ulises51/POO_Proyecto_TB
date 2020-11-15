@@ -17,6 +17,15 @@ class TestBench (file):
         except ValueError:
             return False
 
+    def __BaseConv(self, base, x):
+        switcher = {
+            "dec": ("d" + str(x)),
+            "bin": (str(bin(x))[1:]),
+            "hex": ("h" + str(hex(x))[2:]),
+            "oct": (str(oct(x))[1:]),
+        }
+        return switcher.get(base, (str(bin(x))[1:]))
+
     def tb_validation(self):
         print ("fromatPath", self.formatPath())
         if (os.path.isdir(self.direct)):
@@ -96,38 +105,6 @@ class TestBench (file):
                 tb_out.write(f"\t\t{flatInputs[i]}_tb = 0;\n")
         return  tb_out
 
-    def __PrintRandomCases(self, tb_out, config, IDetector, ISizes_Val):
-        tb_out.write("\t\tRandom case generation selected")
-        if (config["tb_cases"] == "none" or config["tb_cases"] == "none\""):
-            tb_out.write("\n//Generation of random testcases was not selected in configuration file  \n")
-        elif (self.checkInt(config["tb_cases"])):
-            for j in range(0, int(config["tb_cases"])):
-                tb_out.write("\n\t\t#1\n")
-                i = 0
-                for items in IDetector:
-                    for word in items:
-                        if (word == config["md_rst_name"]):
-                            if (config["rst_ope"] == 'l'):
-                                rand = 1
-                                rand = str(bin(rand))
-                                tb_out.write("\t\t//" + word + "_tb = " + str(ISizes_Val[i])
-                                             + "'" + rand[1:] + "; //Change if reset is desired" + "\n")
-                            else:
-                                rand = 0
-                                rand = str(bin(rand))
-                                tb_out.write("\t\t//" + word + "_tb = " + str(ISizes_Val[i])
-                                             + "'" + rand[1:] + "; //Change if reset is desired" + "\n")
-                        elif (word != config["md_clk_name"]):
-                            rand = randint(0, (2 ** (ISizes_Val[i]) - 1))
-                            rand = str(bin(rand))
-                            tb_out.write(
-                                "\t\t" + word + "_tb = " + str(ISizes_Val[i]) + "'" + rand[1:] + ";" + "\n")
-                    i = i + 1
-        else:
-            tb_out.write(
-                "\n//There was a problem with the amount of cases indicated, please check configuration file  \n")
-        return tb_out
-
     def __PrintFixCases(self, tb_out, config, IDetector):
         tb_out.write("\t\t//Fix step generation selected")
         flatInputs = list(chain.from_iterable(IDetector))
@@ -138,43 +115,14 @@ class TestBench (file):
             initVal += int(config["tb_inc"])
         return tb_out
 
-    def __PrintDecCases(self, tb_out, config, IDetector, ISizes_Val):
-        tb_out.write("\t\tDecrease case generation selected")
-        InitVal = int(config["tb_initval"])
-        if (config["tb_cases"] == "none" or config["tb_cases"] == "none\""):
-            tb_out.write("\n//Generation of testcases was not selected in configuration file  \n")
-        elif (self.checkInt(config["tb_cases"])):
-            for j in range(0, int(config["tb_cases"])):
-                tb_out.write("\n\t\t#1\n")
-                i = 0
-                for items in IDetector:
-                    for word in items:
-                        if (word == config["md_rst_name"]):
-                            if (config["rst_ope"] == 'l'):
-                                rand = 1
-                                rand = str(bin(rand))
-                                tb_out.write("\t\t//" + word + "_tb = " + str(ISizes_Val[i])
-                                             + "'" + rand[1:] + "; //Change if reset is desired" + "\n")
-                            else:
-                                rand = 0
-                                rand = str(bin(rand))
-                                tb_out.write("\t\t//" + word + "_tb = " + str(ISizes_Val[i])
-                                             + "'" + rand[1:] + "; //Change if reset is desired" + "\n")
-                        elif (word != config["md_clk_name"]):
-                            InitVal_B = str(InitVal)
-                            tb_out.write(
-                                "\t\t" + word + "_tb = " + str(ISizes_Val[i]) + "'" + InitVal_B + ";" + "\n")
-                    i = i + 1
-                InitVal -= int(config["tb_inc"])
-        else:
-            tb_out.write(
-                "\n//There was a problem with the amount of cases indicated, please check configuration file  \n")
-        return tb_out
+    def __CasesSelection(self, tb_out, config, IDetector, ISizes_Val):
+        tb_out.write("\t\t//Cases Method Selected: "+ config["tb_gen"]+" option\n")
 
-    def __PrintIncCases(self, tb_out, config, IDetector, ISizes_Val):
-        tb_out.write("\t\tIncrease case generation selected")
-        InitVal = int(config["tb_initval"])
+        if (self.config_dict["tb_cases"] == "none" or self.config_dict["tb_cases"] == "none\""):
+            tb_out.write("\t\t/None genearation cases option was not selected in configuration file\n")
+            return tb_out
 
+        InitVal = int(config["tb_initval"])
         if (self.checkInt(config["tb_cases"])):
             for j in range(0, int(config["tb_cases"])):
                 tb_out.write("\n\t\t#1\n")
@@ -183,27 +131,34 @@ class TestBench (file):
                     for word in items:
                         if (word == config["md_rst_name"]):
                             if (config["rst_ope"] == 'l'):
-                                rand = 1
-                                rand = str(bin(rand))
+                                rand = str(self.__BaseConv(config["tb_base"], 1))
                                 tb_out.write("\t\t//" + word + "_tb = " + str(ISizes_Val[i])
-                                             + "'" + rand[1:] + "; //Change if reset is desired" + "\n")
+                                             + "'" + rand + "; //Change if reset is desired" + "\n")
                             else:
-                                rand = 0
-                                rand = str(bin(rand))
+                                rand = str(self.__BaseConv(config["tb_base"], 0))
                                 tb_out.write("\t\t//" + word + "_tb = " + str(ISizes_Val[i])
-                                             + "'" + rand[1:] + "; //Change if reset is desired" + "\n")
-                        elif (word != config["md_clk_name"]):
-                            print("entro al elif")
-                            InitVal_B = str((InitVal))
+                                             + "'" + rand + "; //Change if reset is desired" + "\n")
+                        elif (word != config["md_clk_name"] and (config["tb_gen"] == "rand") or
+                              (config["tb_gen"] != "dec" and config["tb_gen"] != "inc" and word != config["md_clk_name"])):
+
+                            rand = randint(0, (2 ** (ISizes_Val[i]) - 1))
+                            rand = str(self.__BaseConv(config["tb_base"], rand))
                             tb_out.write(
-                                "\t\t" + word + "_tb = " + str(ISizes_Val[i]) + "'" + InitVal_B + ";" + "\n")
+                                "\t\t" + word + "_tb = " + str(ISizes_Val[i]) + "'" + rand + ";" + "\n")
+
+                        elif (word != config["md_clk_name"] and (config["tb_gen"] == "dec" or config["tb_gen"] == "inc") ):
+                            InitVal_Temp = str(self.__BaseConv(config["tb_base"], InitVal))
+                            tb_out.write(
+                                "\t\t" + word + "_tb = " + str(ISizes_Val[i]) + "'" + InitVal_Temp + ";" + "\n")
                     i = i + 1
-                print("Val InitVal: ", InitVal)
-                InitVal += int(config["tb_inc"])
+                if(config["tb_gen"] == "dec"):
+                    InitVal -= int(config["tb_inc"])
+                if(config["tb_gen"] == "inc"):
+                    InitVal += int(config["tb_inc"])
         else:
             tb_out.write(
                 "\n//There was a problem with the amount of cases indicated, please check configuration file  \n")
-        return tb_out
+        return  tb_out
 
     def __ClkVar(self, tb_out, config, rgxempty):
         if (config["md_clk_name"] == "none" or config["md_clk_name"] == "none\""):
@@ -253,14 +208,7 @@ class TestBench (file):
 
             tb_out.write("\n//variable changes  \n")
             # ciclo para la escitura de n pruebas aleatorias
-            if(self.config_dict["tb_cases"] == "none" or self.config_dict["tb_cases"] == "none\""):
-                tb_out.write("\t\t/Generation of random testcases was not selected in configuration file\n")
-            elif(self.config_dict["tb_gen"] == 'rand'):
-                tb_out = self.__PrintRandomCases(tb_out,  self.config_dict, self.mod_info.input_list, self.mod_info.input_sizes_int)
-            elif(self.config_dict["tb_gen"] == 'inc'):
-                tb_out = self.__PrintIncCases(tb_out, self.config_dict, self.mod_info.input_list, self.mod_info.input_sizes_int)
-            elif (self.config_dict["tb_gen"] == 'dec'):
-                tb_out = self.__PrintDecCases(tb_out, self.config_dict, self.mod_info.input_list, self.mod_info.input_sizes_int)
+            tb_out = self.__CasesSelection(tb_out, self.config_dict, self.mod_info.input_list, self.mod_info.input_sizes_int)
 
             tb_out.write("\n\t\t#1\n\t\t$finish;\n\tend\n")
             tb_out = self.__ClkVar(tb_out, self.config_dict, rgxepty)

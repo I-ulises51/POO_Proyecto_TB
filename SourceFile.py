@@ -24,6 +24,12 @@ class src_file(file):
                 self.source_string = self.read()
                 self.source_string = self.source_string.split("\n")
                 #self.source_string = ((self.read()).split("\n"))
+        else:
+            self.name = "default.txt"
+            self.direct = os.getcwd()
+            self.source_string = self.read()
+            self.source_string = self.source_string.split("\n")
+
 
     def getsourceString(self):
         return self.source_string
