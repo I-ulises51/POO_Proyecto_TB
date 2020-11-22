@@ -1,19 +1,55 @@
-module Top_Module (//input clk, input rste, output out_G);
-  input clk, rst;
-  input [2:0] a, b;
-  output reg [31:0] out_G;
-  output reg [31:0] out_Y;
-  wire [31:0] in_pc_w1, out_pc_w2,out_im_w3,out_rb_w4,out_rb_w5,out_aluc_w6,out_alu_w7;
-  reg [31:0] cnt_adder;
+// code
+module FSM(
+input clk, rst,
+input [1:0] in,
+output reg [0:0] out);
+reg [1:0] state, next_s;
 
-  initial
-    cnt_adder = 32'd4;
+//impresion de parametros de estado
+parameter S0= 2'b0X;
+parameter S1= 2'bX1;
 
-  assign out_G = out_alu_w7;
+initial begin
+    state = S0;
+end
 
-  pc 	pc_top (clk, rst, in_pc_w1, out_pc_w2);
-  adder adder_top(out_pc_w2,cnt_adder,in_pc_w1);
-  Instruction_memory instruction_memory_top(clk,out_pc_w2,out_im_w3);
-  Registers_bank Registers_bank_top(clk,0,out_im_w3[25:21],out_im_w3[20:16],out_im_w3[15:11],out_rb_w4,out_rb_w5,out_alu_w7);
-  ALU ALU_top(out_rb_w4,out_rb_w5,out_aluc_w6,out_alu_w7);
-  alu_control alu_control_top(out
+always @(posedge clk or posedge rst)
+    begin
+        if (rst) state <=S0;
+        else state <= next_s;
+    end
+
+always @(state or in)
+    begin
+        case (state)
+            S0:
+            casex(in)
+                2'b0x: next_s = S1;
+                2'bx0: next_s = S0;
+                default: next_s = S0;
+            endcase
+            S1:
+            casex(in)
+                2'bx0: next_s = S0;
+                2'bx1: next_s = S1;
+                default: next_s = S1;
+            endcase
+            default: next_s = S0;
+        endcase
+    end
+
+always @(state or in)
+    begin
+        case (state)
+            S0:
+            casex(in)
+                2'b0x: out = 1'b0;
+                2'bx0: out = 1'b0;
+                default: out = 1'bx;
+            endcase
+            S1:out = 1'b0;
+        endcase
+    end
+
+
+endmodule
